@@ -1,0 +1,4 @@
+The UIC BEI LAB Vertical Camera Slider is a precision-engineered device designed for smooth, vertical camera movements, ideal for photography and videography applications. 
+The system is powered by Arduino, utilizing stepper motors to provide accurate and controlled motion along the vertical axis. The user input commands via the Serial Monitor in the Arduino IDE, specifying parameters such as travel distance, and direction. 
+The Arduino processes these commands and controls the stepper motors accordingly. The timing belt and pulley system then translates the motor's rotation into vertical motion, moving the camera platform along the slider's track. 
+This system is designed for ease of use, precision, and reliability, making it an essential tool for capturing dynamic, professional-quality footage along the vertical plane.
