@@ -1,0 +1,158 @@
+/*
+UIC BEI Lab Vertical Camera Slider Code 
+Made By: Shaan Mehta 
+August 2, 2024
+*/
+
+const int panEnaPin = 7;
+const int panStepPin = 3; 
+const int panDirPin = 5; 
+
+const float pulsesPerMM = 5;                     //Number of motor pulses for 1mm travel
+const float pulsesPerDeg = 0.55;                //Number of motor pulses for 1 degree of rotation
+unsigned long totalSteps = 0;                     // To keep track of the total steps
+
+void setup() {
+  // Sets the two pins as Outputs
+  Serial.begin(9600);
+  pinMode(panEnaPin,OUTPUT); 
+  pinMode(panStepPin,OUTPUT); 
+  pinMode(panDirPin,OUTPUT);
+  digitalWrite(panEnaPin,LOW);
+  
+  Serial.println("Welcome to the Pan Mode the UIC BEI Vertical Camera Slider");
+  Serial.println("Made By: Shaan Mehta");
+  Serial.println("Do you want to begin? (Y/N)");
+
+  int startTime = millis();
+  int duration = 8000;                              // Gives users 8 seconds to type Y or N
+
+  // Wait for user input
+  while (true) {
+    int pause = millis(); 
+    if (pause - startTime >= duration) {
+      Serial.println("Took too long to respond");
+      stopMotor();
+      Serial.println("Stopping Program");
+      return; 
+    } 
+    if (Serial.available()) {
+      break; 
+    }
+  }
+}
+
+// Function that runs the pan operation
+void runPan() {
+  Serial.println("Which direction do you want to travel?");
+  Serial.println("Enter 1 to go forward or 0 to go reverse:");          // Asks users for which direction
+  int direction = inputDirection();                                     // 1 = forward 0 = Reverse
+  if (direction == -1) {
+    Serial.println("Invalid input. Please try again.");
+    return;
+  }
+  if (direction == 0) {
+    Serial.println("Going Reverse");
+  }
+  if (direction == 1) {
+    Serial.println("Going Forward");
+  }
+
+  digitalWrite(panDirPin, direction == 1 ? HIGH : LOW);      // Adjust the direction according to the input
+  
+  Serial.println("Enter Pan Distance:");         // Gather the distance you want to travel and prints it. 
+  float data = inputPanData();
+  delay(3000);
+  Serial.print(data);                               
+  Serial.println(" mm");
+  float travP = data * pulsesPerMM;                           // Calculates how many pulses it will take
+  Serial.println("Pan Pulses: ");                          
+  Serial.print(travP);
+  Serial.println(" steps");
+                                      
+  for (int x = 0; x < travP; x++) {            // Makes the calculated pulses for the specified travel distance
+    digitalWrite(panStepPin, HIGH); 
+    delayMicroseconds(1000); 
+    digitalWrite(panStepPin, LOW); 
+    delayMicroseconds(1000); 
+
+    Serial.print("Step Count: ");
+    Serial.print(x + 1);
+    Serial.print(" / " );
+    Serial.print(travP); 
+    Serial.print("\n"); 
+
+    totalSteps++;
+  }
+
+  Serial.print(totalSteps);                                   // Prints the current total step count
+  Serial.println(" Total Step Count");
+
+  stopMotor();
+  // delay(10000);                                      // Waits 10 seconds to allow time to take pictures 
+}
+
+// Function that determines which direction input did the user type
+int inputDirection() {                     
+  while (true) {
+    if (Serial.available()) {
+      char inChar = Serial.read();
+      delay(3000);
+      if (inChar == '1' || inChar == '0') {
+        return inChar - '0';  // Convert char '1' or '0' to int 1 or 0
+      } 
+    }
+  }
+}
+
+// Fuction that determines how much distance did the user input and sends the value back
+float inputPanData(){     
+  delay(500);
+  delay(50);  // Small delay to ensure input is processed
+  float travDist = Serial.parseFloat();
+  delay(3000);  // Reduced delay
+  return travDist; 
+}
+
+// Function that stops the motor 
+void stopMotor(){
+  digitalWrite(panStepPin,LOW); 
+  delayMicroseconds(500); 
+}
+
+// Function that asks the user if they want to run the program once or more than once
+void loop() {
+  while (true) {
+    // Check if data is available on the serial port
+    if (Serial.available() > 0) {
+      char userInput = Serial.read();  // Reads the incoming data
+      delay(2000);
+      if (userInput == 'Y' || userInput == 'y') {
+        Serial.println("Running Pan . . .");
+        runPan();
+        while (true) {
+          Serial.println("Do you want to run the program again? (Y/N)");
+          while (Serial.available() == 0) {
+            // Wait for user input
+          }
+          char runAgain = Serial.read();
+          if (runAgain == 'Y' || runAgain == 'y') {
+            Serial.println("Running the program again...");
+            runPan();
+          } else if (runAgain == 'N' || runAgain == 'n') {
+            Serial.println("Program terminated.");
+            stopMotor();
+            return;
+          } 
+        }
+      } else if (userInput == 'N' || userInput == 'n') {
+        Serial.println("Program terminated.");
+        stopMotor();
+        while (true) {
+          // Do nothing, effectively stopping the program
+        }
+        return;
+      } 
+    }
+  }
+}
