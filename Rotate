@@ -1,0 +1,155 @@
+/*
+UIC BEI Lab Vertical Camera Slider Code 
+Made By: Shaan Mehta 
+August 2, 2024
+*/
+
+const int rotEnaPin = 12;
+const int rotStepPin = 11; 
+const int rotDirPin = 10; 
+
+const float pulsesPerMM = 5;                     //Number of motor pulses for 1mm travel
+const float pulsesPerDeg = 0.55;                //Number of motor pulses for 1 degree of rotation
+unsigned long totalSteps = 0;                     // To keep track of the total steps
+
+void setup() {
+  // Sets the two pins as Outputs
+  Serial.begin(9600);
+  pinMode(rotEnaPin,OUTPUT); 
+  pinMode(rotStepPin,OUTPUT); 
+  pinMode(rotDirPin,OUTPUT);
+
+  Serial.println("Welcome to the Rotate Mode of the UIC BEI Vertical Camera Slider");
+  Serial.println("Made By: Shaan Mehta");
+  Serial.println("Do you want to begin? (Y/N)");
+  int startTime = millis();
+  int duration = 8000;                              // Gives users 8 seconds to type Y or N
+
+  // Wait for user input
+  while (true) {
+    int pause = millis(); 
+    if (pause - startTime >= duration) {
+      Serial.println("Took too long to respond");
+      stopMotor();
+      Serial.println("Stopping Program");
+      return; 
+    } 
+    if (Serial.available()) {
+      break; 
+    }
+  }
+}
+
+// Function that runs the rotate operation
+void runRotate() {
+  Serial.println("Which direction do you want to travel?");
+  Serial.println("Enter 1 to go forward or 0 to go reverse:");          // Asks users for which direction
+  int direction = inputDirection();                                     // 1 = forward 0 = Reverse
+  if (direction == -1) {
+    Serial.println("Invalid input. Please try again.");
+    return;
+  }
+  if (direction == 0) {
+    Serial.println("Going Reverse");
+  }
+  if (direction == 1) {
+    Serial.println("Going Forward");
+  }
+  digitalWrite(rotDirPin, direction == 1 ? HIGH : LOW);            // Adjust the direction according to the input
+  
+  Serial.println("Enter Rotation Angle:");                     // How much distance you want to travel. 
+  float value = inputRotData();
+  delay(3000);
+  Serial.print(value);                               
+  Serial.println(" deg");
+  float rotP = value * pulsesPerDeg;                           // Calculates how many pulses it will take
+  Serial.println("Travel Pulses: ");                          
+  Serial.print(rotP);
+  Serial.println(" steps");
+                                      
+  for (int x = 0; x < rotP; x++) {            // Makes the calculated pulses for the specified travel distance
+    digitalWrite(rotStepPin, HIGH); 
+    delayMicroseconds(1000); 
+    digitalWrite(rotStepPin, LOW); 
+    delayMicroseconds(1000); 
+
+    Serial.print("Step Count: ");
+    Serial.print(x + 1);
+    Serial.print(" / " );
+    Serial.print(rotP); 
+    Serial.print("\n"); 
+
+    totalSteps++;
+  }
+
+  Serial.print(totalSteps);                                   // Prints the current total step count
+  Serial.println(" Total Step Count");
+
+  stopMotor();
+  // delay(10000);                                      // Waits 10 seconds to allow time to take pictures 
+}
+
+// Function that determines which direction input did the user type
+int inputDirection() {                     
+  while (true) {
+    if (Serial.available()) {
+      char inChar = Serial.read();
+      delay(3000);
+      if (inChar == '1' || inChar == '0') {
+        return inChar - '0';  // Convert char '1' or '0' to int 1 or 0
+      } 
+    }
+  }
+}
+
+// Fuction that determines how much distance did the user input and sends the value back
+float inputRotData(){     
+  delay(500);
+  delay(50);  // Small delay to ensure input is processed
+  float rotAng = Serial.parseFloat();
+  delay(3000);  // Reduced delay
+  return rotAng; 
+}
+
+// Function that stops the motor 
+void stopMotor(){
+  digitalWrite(rotStepPin,LOW); 
+  delayMicroseconds(500); 
+}
+
+// Function that asks the user if they want to run the program once or more than once
+void loop() {
+  while (true) {
+    // Check if data is available on the serial port
+    if (Serial.available() > 0) {
+      char userInput = Serial.read();  // Reads the incoming data
+      delay(2000);
+      if (userInput == 'Y' || userInput == 'y') {
+        Serial.println("Running Rotate . . .");
+        runRotate();
+        while (true) {
+          Serial.println("Do you want to run the program again? (Y/N)");
+          while (Serial.available() == 0) {
+            // Wait for user input
+          }
+          char runAgain = Serial.read();
+          if (runAgain == 'Y' || runAgain == 'y') {
+            Serial.println("Running the program again...");
+            runRotate();
+          } else if (runAgain == 'N' || runAgain == 'n') {
+            Serial.println("Program terminated.");
+            stopMotor();
+            return;
+          } 
+        }
+      } else if (userInput == 'N' || userInput == 'n') {
+        Serial.println("Program terminated.");
+        stopMotor();
+        while (true) {
+          // Do nothing, effectively stopping the program
+        }
+        return;
+      } 
+    }
+  }
+}
