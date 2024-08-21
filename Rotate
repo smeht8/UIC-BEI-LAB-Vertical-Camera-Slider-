@@ -8,8 +8,8 @@ const int rotEnaPin = 12;
 const int rotStepPin = 11; 
 const int rotDirPin = 10; 
 
-const float pulsesPerMM = 5;                     //Number of motor pulses for 1mm travel
-const float pulsesPerDeg = 0.55;                //Number of motor pulses for 1 degree of rotation
+const float pulsesPerMM = 50;                     //Number of motor pulses for 1mm travel
+const float pulsesPerDeg = 4.5;                //Number of motor pulses for 1 degree of rotation
 unsigned long totalSteps = 0;                     // To keep track of the total steps
 
 void setup() {
