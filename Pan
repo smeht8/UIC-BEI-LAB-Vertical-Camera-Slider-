@@ -89,7 +89,8 @@ void runPan() {
   Serial.println(" Total Step Count");
 
   stopMotor();
-  // delay(10000);                                      // Waits 10 seconds to allow time to take pictures 
+  delay(10000);                                      // Waits 10 seconds to allow time to take pictures 
+  Serial.println("Program terminated.");
 }
 
 // Function that determines which direction input did the user type
