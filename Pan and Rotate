@@ -99,7 +99,7 @@ void runPan(){
   Serial.print(totalSteps);                                   // Prints the current total step count
   Serial.println(" Total Step Count");
 
-  // delay(10000);                                      // Waits 10 seconds to allow time to take pictures 
+  delay(10000);                                      // Waits 10 seconds to allow time to take pictures 
 }
 
 void runRotate(){
